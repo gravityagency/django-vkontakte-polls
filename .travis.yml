@@ -1,0 +1,22 @@
+language: python
+python:
+  - "2.7"
+env:
+  - DJANGO=1.4
+install:
+  - pip install Django>=$DJANGO --use-mirrors
+  - pip install simplejson --use-mirrors
+  - pip install factory_boy --use-mirrors
+  - pip install coveralls --use-mirrors
+  - pip install mock --use-mirrors
+  - pip install . --use-mirrors
+script:
+  - coverage run --source=vkontakte_polls quicktest.py vkontakte_polls
+after_success:
+  - coveralls
+notifications:
+  email:
+    recipients:
+      - ramusus@gmail.com
+    on_success: change
+    on_failure: change
