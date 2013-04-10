@@ -102,6 +102,7 @@ class Poll(PollsAbstractModel):
         for answer in self._answers:
             answer.poll = self
             answer.save()
+        self._answers = []
 
         return result
 
@@ -120,6 +121,9 @@ class Answer(PollsAbstractModel):
 
     objects = AnswerManager()
     remote = AnswerRemoteManager()
+
+    def __unicode__(self):
+        return self.text
 
     def parse(self, response):
         response['votes_count'] = response.pop('votes')

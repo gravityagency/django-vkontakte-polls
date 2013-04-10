@@ -37,4 +37,36 @@
     >>> group = Group.remote.fetch(ids=[16297716])[0]
     >>> post = Post.objects.create(remote_id='-16297716_190770', wall_owner=group)
     >>> poll = Poll.remote.fetch(83838453, group, post)
+    >>> poll.pk
+    83838453
     >>> poll.question
+    А ты занимаешься спортом? (открытое голосование)
+    >>> poll.votes_count
+    2170
+    >>> poll.owner
+    <Group: Coca-Cola>
+    >>> poll.created
+    datetime.datetime(2013, 4, 8, 12, 59, 2)
+
+### Получение всех ответов голосования
+
+    >>> poll.answers.all()
+    [<Answer: Да, профессионально!>, <Answer: Регулярно хожу в спортзал.>, <Answer: Бегаю в тёплое время года.>, <Answer: Играю с друзьями в футбол.>, <Answer: Нет, я просто стараюсь вести здоровый образ жизни.>, <Answer: Нет, но очень хотелось бы.>, <Answer: Свой вариант (расскажу в комментариях).>]
+    >>> poll.answers.count()
+    7
+    >>> answer = poll.answers.all()[0]
+    >>> answer.pk
+    266067655L
+    >>> answer.text
+    Да, профессионально!
+    >>> answer.votes_count
+    581
+    >>> answer.rate
+    26.77
+
+### Получение всех пользователей, проголосовавших за ответ
+
+    >>> answer.fetch_voters()
+    [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
+    >>> answer.voters.count()
+    581
