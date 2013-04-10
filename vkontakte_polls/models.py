@@ -58,7 +58,7 @@ class Poll(PollsAbstractModel):
     owner_id = models.PositiveIntegerField()
     owner = generic.GenericForeignKey('owner_content_type', 'owner_id')
 
-    post = models.ForeignKey(Post, verbose_name=u'Сообщение, в котором опрос')
+    post = models.OneToOneField(Post, verbose_name=u'Сообщение, в котором опрос', related_name='poll')
 
     created = models.DateTimeField(u'Дата создания', db_index=True)
     question = models.TextField(u'Вопрос')
