@@ -12,9 +12,9 @@ class AnswerInline(admin.TabularInline):
     readonly_fields = fields
 
 class PollAdmin(VkontakteModelAdmin):
-    list_display = ('question','created','votes_count','owner','post')
+    list_display = ('question','created','votes_count','post')
     list_display_links = ('question',)
-    list_filter = ('owner',)
+#    list_filter = ('owner',)
     search_fields = ('question',)
 #    exclude = ('like_users','repost_users',)
     inlines = [AnswerInline]

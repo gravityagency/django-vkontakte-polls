@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from models import Poll, Answer
+from models import Poll, Answer, Post
 from factories import PollFactory, AnswerFactory
 from vkontakte_groups.factories import GroupFactory
 from vkontakte_wall.factories import PostFactory
 from vkontakte_users.factories import UserFactory
+from datetime import datetime
 import simplejson as json
 import mock
 
 GROUP_ID = 16297716
 POST_ID = '-16297716_190770'
 POLL_ID = 83838453
+GROUP2_ID=45346748
 
 class VkontaktePollsTest(TestCase):
 
@@ -89,12 +91,30 @@ class VkontaktePollsTest(TestCase):
         poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
         answer = AnswerFactory.create(pk=266067661, poll=poll)
 
-        self.assertEqual(answer.voters.count(), 0)
-        self.assertEqual(answer.votes_count, 0)
-        self.assertEqual(answer.rate, 0)
-
         answer.fetch_voters()
 
+        self.assertEqual(answer.voters.count(), answer.votes_count)
         self.assertTrue(answer.voters.count() > 110)
         self.assertTrue(answer.rate > 0)
-        self.assertEqual(answer.votes_count, answer.votes_count)
+
+    def test_fetch_group_post_with_poll(self, *args, **kwargs):
+
+        group = GroupFactory.create(remote_id=GROUP_ID)
+
+        self.assertEqual(Poll.objects.count(), 0)
+        self.assertEqual(Answer.objects.count(), 0)
+        group.fetch_posts(after=datetime(2013,4,8), own=True)
+        self.assertTrue(Poll.objects.count() > 0)
+        self.assertTrue(Answer.objects.count() > 0)
+
+    def test_fetch_user_post_with_poll(self, *args, **kwargs):
+
+        group = GroupFactory.create(remote_id=GROUP2_ID)
+
+        self.assertEqual(Post.objects.count(), 0)
+        self.assertEqual(Poll.objects.count(), 0)
+        self.assertEqual(Answer.objects.count(), 0)
+        group.fetch_posts(own=True)
+        self.assertTrue(Post.objects.count() > 0)
+        self.assertTrue(Poll.objects.count() > 0)
+        self.assertTrue(Answer.objects.count() > 0)

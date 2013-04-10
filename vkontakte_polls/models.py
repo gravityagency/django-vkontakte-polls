@@ -30,6 +30,7 @@ class PollRemoteManager(PollsRemoteManager):
         kwargs['extra_fields'] = {'post_id': post.id}
         kwargs['poll_id'] = poll_id
         kwargs['owner_id'] = owner.remote_id
+        # TODO: make all group remote_id negative
         if isinstance(owner, Group):
              kwargs['owner_id'] *= -1
         return super(PollRemoteManager, self).fetch(**kwargs)
@@ -179,3 +180,5 @@ class Answer(PollsAbstractModel):
             return self.fetch_voters(offset=offset+number_on_page)
         else:
             return self.voters.all()
+
+import signals
