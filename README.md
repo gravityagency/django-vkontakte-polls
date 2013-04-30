@@ -29,6 +29,14 @@
     OAUTH_TOKENS_VKONTAKTE_PASSWORD = ''                                # user password
     OAUTH_TOKENS_VKONTAKTE_PHONE_END = ''                               # last 4 digits of user mobile phone
 
+## Покрытие методов API
+
+* [polls.getById](http://vk.com/developers.php?oid=-1&p=polls.getById) – возвращает детальную информацию об опросе;
+
+## Использование парсера
+
+* Получение проголосовавших за ответ пользователей;
+
 ## Примеры использования
 
 ### Получение голосования

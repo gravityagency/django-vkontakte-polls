@@ -6,7 +6,7 @@ from models import Poll
 import re
 
 @receiver(post_save, sender=Post)
-def parse_poll(sender, instance, created, **kwargs):
+def fetch_poll_for_post(sender, instance, created, **kwargs):
     try:
         #<input type="hidden" id="post_poll_id-45346748_4" value="72195917" />
         #<input type="hidden" id="post_poll_raw-16297716_190770" value="-16297716_83838453" /><input type="hidden" id="post_poll_open-16297716_190770" value="1" />

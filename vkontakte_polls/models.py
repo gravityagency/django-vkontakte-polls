@@ -47,8 +47,8 @@ class PollsAbstractModel(VkontakteModel):
 
 class Poll(PollsAbstractModel):
     class Meta:
-        verbose_name = u'Голосование Вконтакте'
-        verbose_name_plural = u'Голосования Вконтакте'
+        verbose_name = u'Опрос Вконтакте'
+        verbose_name_plural = u'Опросы Вконтакте'
         ordering = ['created']
 
     remote_pk_field = 'poll_id'
@@ -109,11 +109,11 @@ class Poll(PollsAbstractModel):
 
 class Answer(PollsAbstractModel):
     class Meta:
-        verbose_name = u'Ответ голосования Вконтакте'
-        verbose_name_plural = u'Ответы голосований Вконтакте'
+        verbose_name = u'Ответ опроса Вконтакте'
+        verbose_name_plural = u'Ответы опросов Вконтакте'
         ordering = ['remote_id']
 
-    poll = models.ForeignKey(Poll, verbose_name=u'Голосование', related_name='answers')
+    poll = models.ForeignKey(Poll, verbose_name=u'Опрос', related_name='answers')
     text = models.TextField(u'Текст ответа')
     votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Количество пользователей, проголосовавших за ответ')
     rate = models.FloatField(u'Рейтинг', help_text=u'Рейтинг ответа, в %')
