@@ -2,8 +2,12 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from vkontakte_wall.models import Post
+from vkontakte_api.utils import VkontakteError
 from models import Poll
 import re
+import logging
+
+log = logging.getLogger('vkontakte_polls')
 
 @receiver(post_save, sender=Post)
 def fetch_poll_for_post(sender, instance, created, **kwargs):
@@ -15,5 +19,7 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
             poll_id = poll_id.split('_')[1]
         owner = instance.copy_owner or instance.wall_owner
         Poll.remote.fetch(int(poll_id), owner, instance)
+    except VkontakteError, e:
+        log.error("Vkontakte error (code = %s) raised: '%s'" % (e.code, e.description))
     except IndexError:
         pass
