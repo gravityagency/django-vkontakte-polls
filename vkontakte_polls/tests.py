@@ -62,7 +62,7 @@ class VkontaktePollsTest(TestCase):
 
         group = GroupFactory.create(remote_id=GROUP_ID)
         post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
-        instance = Poll.remote.fetch(POLL_ID, group, post)
+        instance = Poll.remote.fetch(POLL_ID, post)
 
         self.assertEqual(instance.pk, POLL_ID)
         self.assertEqual(instance.question, u'А ты занимаешься спортом? (открытое голосование)')
@@ -99,13 +99,13 @@ class VkontaktePollsTest(TestCase):
 
     def test_fetch_group_post_with_poll(self, *args, **kwargs):
 
-        group = GroupFactory.create(remote_id=GROUP_ID)
-
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Answer.objects.count(), 0)
-        group.fetch_posts(after=datetime(2013,4,8), own=True)
-        self.assertTrue(Poll.objects.count() > 0)
-        self.assertTrue(Answer.objects.count() > 0)
+
+        post = Post.remote.fetch(ids=[POST_ID])
+
+        self.assertEqual(Poll.objects.count(), 1)
+        self.assertEqual(Answer.objects.count(),  7)
 
     def test_fetch_user_post_with_poll(self, *args, **kwargs):
 

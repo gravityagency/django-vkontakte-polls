@@ -26,11 +26,12 @@ class PollsRemoteManager(VkontakteManager):
 
 class PollRemoteManager(PollsRemoteManager):
 
-    def fetch(self, poll_id, owner, post, **kwargs):
+    def fetch(self, poll_id, post, **kwargs):
+        owner = post.copy_owner or post.wall_owner
+
         kwargs['extra_fields'] = {'post_id': post.id}
         kwargs['poll_id'] = poll_id
         kwargs['owner_id'] = owner.remote_id
-        # TODO: make all group remote_id negative
         if isinstance(owner, Group):
              kwargs['owner_id'] *= -1
         return super(PollRemoteManager, self).fetch(**kwargs)

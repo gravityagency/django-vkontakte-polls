@@ -1,10 +1,10 @@
-# Django Vkontakte Polls
-
-[![Build Status](https://travis-ci.org/ramusus/django-vkontakte-polls.png?branch=master)](https://travis-ci.org/ramusus/django-vkontakte-polls) [![Coverage Status](https://coveralls.io/repos/ramusus/django-vkontakte-polls/badge.png?branch=master)](https://coveralls.io/r/ramusus/django-vkontakte-polls)
+Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vkontakte-polls.png?branch=master)](https://travis-ci.org/ramusus/django-vkontakte-polls) [![Coverage Status](https://coveralls.io/repos/ramusus/django-vkontakte-polls/badge.png?branch=master)](https://coveralls.io/r/ramusus/django-vkontakte-polls)
+======================
 
 Приложение позволяет взаимодействовать с голосованиями групп через Вконтакте API используя стандартные модели Django
 
-## Установка
+Установка
+---------
 
     pip install django-vkontakte-polls
 
@@ -29,15 +29,18 @@
     OAUTH_TOKENS_VKONTAKTE_PASSWORD = ''                                # user password
     OAUTH_TOKENS_VKONTAKTE_PHONE_END = ''                               # last 4 digits of user mobile phone
 
-## Покрытие методов API
+Покрытие методов API
+--------------------
 
 * [polls.getById](http://vk.com/developers.php?oid=-1&p=polls.getById) – возвращает детальную информацию об опросе;
 
-## Использование парсера
+Использование парсера
+---------------------
 
 * Получение проголосовавших за ответ пользователей;
 
-## Примеры использования
+Примеры использования
+---------------------
 
 ### Получение голосования
 
