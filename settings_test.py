@@ -4,6 +4,7 @@ INSTALLED_APPS = (
     'vkontakte_groups',
     'vkontakte_wall',
     'oauth_tokens',
+    'taggit',
 )
 
 OAUTH_TOKENS_VKONTAKTE_CLIENT_ID = 3430034

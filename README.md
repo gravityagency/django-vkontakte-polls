@@ -13,7 +13,9 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
     INSTALLED_APPS = (
         ...
         'oauth_tokens',
+        'taggit',
         'vkontakte_api',
+        'vkontakte_places',
         'vkontakte_groups',
         'vkontakte_users',
         'vkontakte_wall',
