@@ -141,7 +141,7 @@ class Answer(PollsAbstractModel):
 
         super(Answer, self).parse(response)
 
-    def fetch_voters(self, offset=0, source=None):
+    def fetch_voters(self, offset=0, source='api'):
         if source == 'api':
             return self.fetch_voters_by_api(offset)
         return self.fetch_voters_by_parser(offset)

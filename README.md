@@ -79,7 +79,7 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 
 ### Получение всех пользователей, проголосовавших за ответ
 
-    >>> answer.fetch_voters()
+    >>> answer.fetch_voters(source=None)  # по-умолчанию source='api'
     [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
     >>> answer.voters.count()
     581
@@ -91,7 +91,7 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 
 ### Получение всех пользователей, проголосовавших за ответ
 
-    >>> answer.fetch_voters(source='api')  # по-умолчанию source=None
+    >>> answer.fetch_voters()   
     [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
     >>> answer.voters.count()
     581
