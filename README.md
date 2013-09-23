@@ -13,9 +13,7 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
     INSTALLED_APPS = (
         ...
         'oauth_tokens',
-        'taggit',
         'vkontakte_api',
-        'vkontakte_places',
         'vkontakte_groups',
         'vkontakte_users',
         'vkontakte_wall',
@@ -80,6 +78,18 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 ### Получение всех пользователей, проголосовавших за ответ
 
     >>> answer.fetch_voters()
+    [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
+    >>> answer.voters.count()
+    581
+
+Работа с VK API
+---------------------
+
+* Получение проголосовавших за ответ пользователей;
+
+### Получение всех пользователей, проголосовавших за ответ, 
+
+    >>> answer.fetch_voters_by_api()
     [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
     >>> answer.voters.count()
     581
