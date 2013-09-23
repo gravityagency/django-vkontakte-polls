@@ -116,14 +116,6 @@ class Poll(PollsAbstractModel):
 
         return result
 
-    def ask_vkapi(self, *args, **kwargs):
-        params = {
-            'owner_id': self.post.remote_id.split('_')[0],
-            'poll_id': self.pk,
-        }
-        result = api_call('polls.getById', **params)
-        return result
-
 
 class Answer(PollsAbstractModel):
     class Meta:
@@ -149,7 +141,12 @@ class Answer(PollsAbstractModel):
 
         super(Answer, self).parse(response)
 
-    def fetch_voters(self, offset=0):
+    def fetch_voters(self, offset=0, source=None):
+        if source == 'api':
+            return self.fetch_voters_by_api(offset)
+        return self.fetch_voters_by_parser(offset)
+
+    def fetch_voters_by_parser(self, offset=0):
         '''
         Update and save fields:
             * votes_count - count of likes
@@ -220,10 +217,10 @@ class Answer(PollsAbstractModel):
 
         if offset == 0:
             try:
-                poll_total_votes = self.poll.ask_vkapi()['votes']
                 self.votes_count = int(result['users'][0])
-                if poll_total_votes:
-                    self.rate = (float(self.votes_count) / poll_total_votes) * 100
+                pp = Poll.remote.fetch(self.poll.pk, self.poll.post)
+                if pp and pp.votes_count:
+                    self.rate = (float(self.votes_count) / pp.votes_count) * 100
                 else:
                     self.rate = 0
                 self.save()
@@ -231,19 +228,16 @@ class Answer(PollsAbstractModel):
                 log.warning('Answer fetching error with message: %s' % err)
             self.voters.clear()
 
-        def add_user(user_params):
-            user = User.remote.get_by_slug('id%s' % user_params['uid'])
-            if user:
-                user.first_name = user_params['first_name']
-                user.last_name = user_params['last_name']
-                user.photo = user_params['photo']
-                user.save()
-                return user
-            return None
+        def normalize_users(users_list):
+            return dict((user['uid'], user) for user in users_list)
 
-        for user_params in result['users'][1:]:
-            user = add_user(user_params)
+        users = normalize_users(result['users'][1:])
+        for user in User.remote.fetch(ids=users.keys()):
             if user:
+                user.first_name = users[user.remote_id]['first_name']
+                user.last_name = users[user.remote_id]['last_name']
+                user.photo = users[user.remote_id]['photo']
+                user.save()
                 self.voters.add(user)
 
         if len(result['users'][1:]) == number_on_page:
