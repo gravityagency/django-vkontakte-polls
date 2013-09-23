@@ -5,14 +5,15 @@ from factories import PollFactory, AnswerFactory
 from vkontakte_groups.factories import GroupFactory
 from vkontakte_wall.factories import PostFactory
 from vkontakte_users.factories import UserFactory
-from datetime import datetime
+#from datetime import datetime
 import simplejson as json
 import mock
 
 GROUP_ID = 16297716
 POST_ID = '-16297716_190770'
 POLL_ID = 83838453
-GROUP2_ID=45346748
+GROUP2_ID = 45346748
+
 
 class VkontaktePollsTest(TestCase):
 
@@ -102,7 +103,8 @@ class VkontaktePollsTest(TestCase):
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Answer.objects.count(), 0)
 
-        post = Post.remote.fetch(ids=[POST_ID])
+        Post.remote.fetch(ids=[POST_ID])
+        #post = Post.remote.fetch(ids=[POST_ID])
 
         self.assertEqual(Poll.objects.count(), 1)
         self.assertEqual(Answer.objects.count(),  7)
@@ -118,3 +120,41 @@ class VkontaktePollsTest(TestCase):
         self.assertTrue(Post.objects.count() > 0)
         self.assertTrue(Poll.objects.count() > 0)
         self.assertTrue(Answer.objects.count() > 0)
+
+    def test_poll_ask_vkapi(self, *args, **kwargs):
+        group = GroupFactory.create(remote_id=GROUP_ID)
+        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
+
+        self.assertTrue(hasattr(poll, 'ask_vkapi'))
+
+        response = poll.ask_vkapi()
+        self.assertEqual(type(response), dict)
+
+        self.assertTrue('owner_id' in response)
+        self.assertTrue('poll_id' in response)
+        self.assertTrue('created' in response)
+        self.assertTrue('question' in response)
+        self.assertTrue('votes' in response)
+        self.assertTrue('answer_id' in response)
+        self.assertTrue('answers' in response)
+
+    @mock.patch('vkontakte_users.models.User.remote.get_by_slug', side_effect=lambda s: UserFactory.create())
+    def test_fetching_answer_users_by_api(self, *args, **kwargs):
+        def calc_percentage(poll_total_votes, answer_votes):
+            if poll_total_votes:
+                return answer_votes * 100. / poll_total_votes
+            return 0
+
+        group = GroupFactory.create(remote_id=GROUP_ID)
+        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
+        answer = AnswerFactory.create(pk=266067661, poll=poll)
+
+        answer.fetch_voters_by_api()
+
+        self.assertEqual(answer.voters.count(), answer.votes_count)
+        self.assertTrue(answer.voters.count() > 110)
+        self.assertTrue(answer.rate > 0)
+        percentage = calc_percentage(poll.ask_vkapi()['votes'], answer.votes_count)
+        self.assertEqual(answer.rate, percentage)
