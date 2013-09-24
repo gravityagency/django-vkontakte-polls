@@ -81,7 +81,6 @@ class Poll(PollsAbstractModel):
     })
 
     _answers = []
-    voters = None
 
     @property
     def slug(self):
