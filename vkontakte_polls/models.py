@@ -1,28 +1,33 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.utils.translation import ugettext as _
+#from django.utils.translation import ugettext as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.exceptions import ObjectDoesNotExist
-from vkontakte_api.models import VkontakteManager, VkontakteModel, VkontakteContentError
+from vkontakte_api.models import VkontakteManager, VkontakteModel  # , VkontakteContentError
 from vkontakte_api.parser import VkontakteParser
-from vkontakte_api.decorators import fetch_all
-from vkontakte_users.models import User
+from vkontakte_api.utils import api_call, ACCESS_TOKEN
+#from vkontakte_api.decorators import fetch_all
+from vkontakte_users.models import User, USER_FIELDS
 from vkontakte_groups.models import Group
 from vkontakte_wall.models import Post
-from datetime import datetime
+#from datetime import datetime
 import logging
 
 log = logging.getLogger('vkontakte_polls')
 
+
 class AnswerManager(models.Manager):
     pass
+
 
 class PollManager(models.Manager):
     pass
 
+
 class PollsRemoteManager(VkontakteManager):
     pass
+
 
 class PollRemoteManager(PollsRemoteManager):
 
@@ -33,11 +38,13 @@ class PollRemoteManager(PollsRemoteManager):
         kwargs['poll_id'] = poll_id
         kwargs['owner_id'] = owner.remote_id
         if isinstance(owner, Group):
-             kwargs['owner_id'] *= -1
+            kwargs['owner_id'] *= -1
         return super(PollRemoteManager, self).fetch(**kwargs)
+
 
 class AnswerRemoteManager(PollsRemoteManager):
     pass
+
 
 class PollsAbstractModel(VkontakteModel):
     class Meta:
@@ -45,6 +52,7 @@ class PollsAbstractModel(VkontakteModel):
 
     methods_namespace = 'polls'
     remote_id = models.BigIntegerField(u'ID', help_text=u'Уникальный идентификатор', primary_key=True)
+
 
 class Poll(PollsAbstractModel):
     class Meta:
@@ -108,6 +116,7 @@ class Poll(PollsAbstractModel):
 
         return result
 
+
 class Answer(PollsAbstractModel):
     class Meta:
         verbose_name = u'Ответ опроса Вконтакте'
@@ -132,7 +141,12 @@ class Answer(PollsAbstractModel):
 
         super(Answer, self).parse(response)
 
-    def fetch_voters(self, offset=0):
+    def fetch_voters(self, offset=0, source='api'):
+        if source == 'api':
+            return self.fetch_voters_by_api(offset)
+        return self.fetch_voters_by_parser(offset)
+
+    def fetch_voters_by_parser(self, offset=0):
         '''
         Update and save fields:
             * votes_count - count of likes
@@ -157,7 +171,7 @@ class Answer(PollsAbstractModel):
         if offset == 0:
             try:
                 self.votes_count = int(parser.content_bs.find('span', {'id': 'wk_poll_row_count0'}).text)
-                self.rate = float(parser.content_bs.find('b', {'id': 'wk_poll_row_percent0'}).text.replace('%',''))
+                self.rate = float(parser.content_bs.find('b', {'id': 'wk_poll_row_percent0'}).text.replace('%', ''))
                 self.save()
             except:
                 log.warning('Strange markup of first page votes response: "%s"' % parser.content)
@@ -178,8 +192,49 @@ class Answer(PollsAbstractModel):
             user_add=lambda user: self.voters.add(user))
 
         if len(items) == number_on_page:
-            return self.fetch_voters(offset=offset+number_on_page)
+            return self.fetch_voters(offset=offset + number_on_page)
         else:
             return self.voters.all()
+
+    def fetch_voters_by_api(self, offset=0):
+        '''
+        Update and save fields:
+            * votes_count - count of likes
+        Update relations:
+            * voters - users, who vote for this answer
+        '''
+        number_on_page = 100
+        params = {
+            'owner_id': self.poll.post.remote_id.split('_')[0],
+            'poll_id': self.poll.pk,
+            'answer_ids': self.pk,
+            'offset': offset,
+            'count': number_on_page,
+            'fields': USER_FIELDS,
+        }
+
+        result = api_call('polls.getVoters', used_access_tokens=ACCESS_TOKEN, **params)[0]
+
+        if offset == 0:
+            try:
+                self.votes_count = int(result['users'][0])
+                pp = Poll.remote.fetch(self.poll.pk, self.poll.post)
+                if pp and pp.votes_count:
+                    self.rate = (float(self.votes_count) / pp.votes_count) * 100
+                else:
+                    self.rate = 0
+                self.save()
+            except Exception, err:
+                log.warning('Answer fetching error with message: %s' % err)
+            self.voters.clear()
+
+        for user in User.remote.parse_response_list(result['users'][1:], extra_fields={}):
+            user = User.remote.get_or_create_from_instance(user)
+            self.voters.add(user)
+
+        if len(result['users'][1:]) == number_on_page:
+            return self.fetch_voters_by_api(offset + number_on_page)
+        return self.voters.all()
+
 
 import signals

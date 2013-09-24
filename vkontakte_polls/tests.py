@@ -5,14 +5,15 @@ from factories import PollFactory, AnswerFactory
 from vkontakte_groups.factories import GroupFactory
 from vkontakte_wall.factories import PostFactory
 from vkontakte_users.factories import UserFactory
-from datetime import datetime
+#from datetime import datetime
 import simplejson as json
 import mock
 
 GROUP_ID = 16297716
 POST_ID = '-16297716_190770'
 POLL_ID = 83838453
-GROUP2_ID=45346748
+GROUP2_ID = 45346748
+
 
 class VkontaktePollsTest(TestCase):
 
@@ -84,14 +85,14 @@ class VkontaktePollsTest(TestCase):
         self.assertIsNotNone(answer.rate)
 
     @mock.patch('vkontakte_users.models.User.remote.get_by_slug', side_effect=lambda s: UserFactory.create())
-    def test_fetching_answer_users(self, *args, **kwargs):
+    def test_fetching_answer_users_by_parser(self, *args, **kwargs):
 
         group = GroupFactory.create(remote_id=GROUP_ID)
         post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
         poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
         answer = AnswerFactory.create(pk=266067661, poll=poll)
 
-        answer.fetch_voters()
+        answer.fetch_voters_by_parser()
 
         self.assertEqual(answer.voters.count(), answer.votes_count)
         self.assertTrue(answer.voters.count() > 110)
@@ -102,7 +103,8 @@ class VkontaktePollsTest(TestCase):
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Answer.objects.count(), 0)
 
-        post = Post.remote.fetch(ids=[POST_ID])
+        Post.remote.fetch(ids=[POST_ID])
+        #post = Post.remote.fetch(ids=[POST_ID])
 
         self.assertEqual(Poll.objects.count(), 1)
         self.assertEqual(Answer.objects.count(),  7)
@@ -118,3 +120,44 @@ class VkontaktePollsTest(TestCase):
         self.assertTrue(Post.objects.count() > 0)
         self.assertTrue(Poll.objects.count() > 0)
         self.assertTrue(Answer.objects.count() > 0)
+
+    @mock.patch('vkontakte_users.models.User.remote.get_by_slug', side_effect=lambda s: UserFactory.create())
+    def test_fetching_answer_users_by_api(self, *args, **kwargs):
+        def calc_percentage(poll, answer_votes):
+            pp = Poll.remote.fetch(poll.pk, poll.post)
+            if pp and pp.votes_count:
+                return answer_votes * 100. / pp.votes_count
+            return 0
+
+        group = GroupFactory.create(remote_id=GROUP_ID)
+        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
+        answer = AnswerFactory.create(pk=266067661, poll=poll)
+
+        answer.fetch_voters_by_api()
+
+        self.assertEqual(answer.voters.count(), answer.votes_count)
+        self.assertTrue(answer.voters.count() > 110)
+        self.assertTrue(answer.rate > 0)
+        percentage = calc_percentage(poll, answer.votes_count)
+        self.assertEqual(answer.rate, percentage)
+
+    @mock.patch('vkontakte_users.models.User.remote.get_by_slug', side_effect=lambda s: UserFactory.create())
+    def test_fetching_answer_users(self, *args, **kwargs):
+
+        group = GroupFactory.create(remote_id=GROUP_ID)
+        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
+        answer = AnswerFactory.create(pk=266067661, poll=poll)
+
+        answer.fetch_voters(source='api')
+
+        self.assertEqual(answer.voters.count(), answer.votes_count)
+        self.assertTrue(answer.voters.count() > 110)
+        self.assertTrue(answer.rate > 0)
+
+        answer.fetch_voters(source=None)
+
+        self.assertEqual(answer.voters.count(), answer.votes_count)
+        self.assertTrue(answer.voters.count() > 110)
+        self.assertTrue(answer.rate > 0)

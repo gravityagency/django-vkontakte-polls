@@ -34,7 +34,8 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 Покрытие методов API
 --------------------
 
-* [polls.getById](http://vk.com/developers.php?oid=-1&p=polls.getById) – возвращает детальную информацию об опросе;
+* [polls.getById](http://vk.com/dev/polls.getById) – возвращает детальную информацию об опросе;
+* [polls.getVoters](http://vk.com/dev/polls.getVoters) – получает список идентификаторов пользователей, которые выбрали определенные варианты ответа в опросе;
 
 Использование парсера
 ---------------------
