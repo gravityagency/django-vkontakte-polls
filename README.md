@@ -1,5 +1,7 @@
-Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vkontakte-polls.png?branch=master)](https://travis-ci.org/ramusus/django-vkontakte-polls) [![Coverage Status](https://coveralls.io/repos/ramusus/django-vkontakte-polls/badge.png?branch=master)](https://coveralls.io/r/ramusus/django-vkontakte-polls)
+Django Vkontakte Polls
 ======================
+
+[![PyPI version](https://badge.fury.io/py/django-vkontakte-polls.png)](http://badge.fury.io/py/django-vkontakte-polls) [![Build Status](https://travis-ci.org/ramusus/django-vkontakte-polls.png?branch=master)](https://travis-ci.org/ramusus/django-vkontakte-polls) [![Coverage Status](https://coveralls.io/repos/ramusus/django-vkontakte-polls/badge.png?branch=master)](https://coveralls.io/r/ramusus/django-vkontakte-polls
 
 Приложение позволяет взаимодействовать с голосованиями групп через Вконтакте API используя стандартные модели Django
 
