@@ -6,9 +6,9 @@ from django.contrib.contenttypes import generic
 from django.core.exceptions import ObjectDoesNotExist
 from vkontakte_api.models import VkontakteManager, VkontakteModel  # , VkontakteContentError
 from vkontakte_api.parser import VkontakteParser
-from vkontakte_api.utils import api_call
+from vkontakte_api.utils import api_call, ACCESS_TOKEN
 #from vkontakte_api.decorators import fetch_all
-from vkontakte_users.models import User
+from vkontakte_users.models import User, USER_FIELDS
 from vkontakte_groups.models import Group
 from vkontakte_wall.models import Post
 #from datetime import datetime
@@ -81,6 +81,7 @@ class Poll(PollsAbstractModel):
     })
 
     _answers = []
+    voters = None
 
     @property
     def slug(self):
@@ -210,10 +211,10 @@ class Answer(PollsAbstractModel):
             'answer_ids': self.pk,
             'offset': offset,
             'count': number_on_page,
-            'fields': 'first_name, last_name, photo',
+            'fields': USER_FIELDS,
         }
 
-        result = api_call('polls.getVoters', **params)[0]
+        result = api_call('polls.getVoters', used_access_tokens=ACCESS_TOKEN, **params)[0]
 
         if offset == 0:
             try:
@@ -228,20 +229,12 @@ class Answer(PollsAbstractModel):
                 log.warning('Answer fetching error with message: %s' % err)
             self.voters.clear()
 
-        def normalize_users(users_list):
-            return dict((user['uid'], user) for user in users_list)
-
-        users = normalize_users(result['users'][1:])
-        for user in User.remote.fetch(ids=users.keys()):
-            if user:
-                user.first_name = users[user.remote_id]['first_name']
-                user.last_name = users[user.remote_id]['last_name']
-                user.photo = users[user.remote_id]['photo']
-                user.save()
-                self.voters.add(user)
+        for user in User.remote.parse_response_list(result['users'][1:], extra_fields={}):
+            user = User.remote.get_or_create_from_instance(user)
+            self.voters.add(user)
 
         if len(result['users'][1:]) == number_on_page:
-            return self.fetch_voters_by_api(offset=offset + number_on_page)
+            return self.fetch_voters_by_api(offset + number_on_page)
         return self.voters.all()
 
 

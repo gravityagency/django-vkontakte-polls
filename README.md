@@ -34,7 +34,8 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 Покрытие методов API
 --------------------
 
-* [polls.getById](http://vk.com/developers.php?oid=-1&p=polls.getById) – возвращает детальную информацию об опросе;
+* [polls.getById](http://vk.com/dev/polls.getById) – возвращает детальную информацию об опросе;
+* [polls.getVoters](http://vk.com/dev/polls.getVoters) – получает список идентификаторов пользователей, которые выбрали определенные варианты ответа в опросе;
 
 Использование парсера
 ---------------------
@@ -63,7 +64,7 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 
 ### Получение всех ответов голосования
 
-    >>> poll.answers.all() 
+    >>> poll.answers.all()
     [<Answer: Да, профессионально!>, <Answer: Регулярно хожу в спортзал.>, <Answer: Бегаю в тёплое время года.>, <Answer: Играю с друзьями в футбол.>, <Answer: Нет, я просто стараюсь вести здоровый образ жизни.>, <Answer: Нет, но очень хотелось бы.>, <Answer: Свой вариант (расскажу в комментариях).>]
     >>> poll.answers.count()
     7
@@ -79,19 +80,7 @@ Django Vkontakte Polls [![Build Status](https://travis-ci.org/ramusus/django-vko
 
 ### Получение всех пользователей, проголосовавших за ответ
 
-    >>> answer.fetch_voters(source=None)  # по-умолчанию source='api'
-    [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
-    >>> answer.voters.count()
-    581
-
-Работа с VK API
----------------------
-
-* Получение проголосовавших за ответ пользователей;
-
-### Получение всех пользователей, проголосовавших за ответ
-
-    >>> answer.fetch_voters()   
+    >>> answer.fetch_voters()
     [<User: Оля Белова>, <User: Никита Панов>, <User: Валентина Кан>, '...(remaining elements truncated)...']
     >>> answer.voters.count()
     581
