@@ -64,14 +64,14 @@ class Poll(PollsAbstractModel):
 
     # Владелец головосвания User or Group
     owner_content_type = models.ForeignKey(ContentType, related_name='vkontakte_polls_polls')
-    owner_id = models.PositiveIntegerField()
+    owner_id = models.PositiveIntegerField(db_index=True)
     owner = generic.GenericForeignKey('owner_content_type', 'owner_id')
 
     post = models.OneToOneField(Post, verbose_name=u'Сообщение, в котором опрос', related_name='poll')
 
     created = models.DateTimeField(u'Дата создания', db_index=True)
     question = models.TextField(u'Вопрос')
-    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Общее количество ответивших пользователей')
+    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Общее количество ответивших пользователей', db_index=True)
 
     answer_id = models.PositiveIntegerField(u'Ответ', help_text=u'идентификатор ответа текущего пользователя')
 
@@ -125,7 +125,7 @@ class Answer(PollsAbstractModel):
 
     poll = models.ForeignKey(Poll, verbose_name=u'Опрос', related_name='answers')
     text = models.TextField(u'Текст ответа')
-    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Количество пользователей, проголосовавших за ответ')
+    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Количество пользователей, проголосовавших за ответ', db_index=True)
     rate = models.FloatField(u'Рейтинг', help_text=u'Рейтинг ответа, в %')
 
     voters = models.ManyToManyField(User, verbose_name=u'Голосующие', blank=True, related_name='poll_answers')
