@@ -96,7 +96,7 @@ class Poll(PollsAbstractModel):
         self._answers = [Answer.remote.parse_response(answer) for answer in response.pop('answers')]
 
         # owner
-        owner_id = response.pop('owner_id')
+        owner_id = int(response.pop('owner_id'))
         ct_model = User if owner_id > 0 else Group
         self.owner_content_type = ContentType.objects.get_for_model(ct_model)
         try:
