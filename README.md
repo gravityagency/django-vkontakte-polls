@@ -22,6 +22,7 @@ Django Vkontakte Polls
         'vkontakte_users',
         'vkontakte_wall',
         'vkontakte_polls',
+        'm2m_history',
     )
 
     # oauth-tokens settings
