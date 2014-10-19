@@ -106,6 +106,12 @@ class Poll(PollsAbstractModel):
         return super(Poll, self).parse(response)
 
     def save(self, *args, **kwargs):
+        # delete all polls to current post to prevent error
+        # IntegrityError: duplicate key value violates unique constraint "vkontakte_polls_poll_post_id_key"
+        duplicate_qs = Poll.objects.filter(post_id=self.post_id)
+        if duplicate_qs.count() > 0:
+            duplicate_qs.delete()
+
         result = super(Poll, self).save(*args, **kwargs)
 
         for answer in self._answers:
