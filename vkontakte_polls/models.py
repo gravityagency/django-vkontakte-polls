@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-#from django.utils.translation import ugettext as _
+from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.exceptions import ObjectDoesNotExist
-from vkontakte_api.models import VkontakteManager, VkontakteModel  # , VkontakteContentError
+from vkontakte_api.models import VkontakteManager, VkontakteModel
 from vkontakte_api.parser import VkontakteParser
 from vkontakte_api.utils import api_call, ACCESS_TOKEN
-#from vkontakte_api.decorators import fetch_all
 from vkontakte_users.models import User, USER_FIELDS
 from vkontakte_groups.models import Group
 from vkontakte_wall.models import Post
-#from datetime import datetime
 import logging
 
 log = logging.getLogger('vkontakte_polls')
@@ -47,19 +45,19 @@ class AnswerRemoteManager(PollsRemoteManager):
 
 
 class PollsAbstractModel(VkontakteModel):
-    class Meta:
-        abstract = True
 
     methods_namespace = 'polls'
     remote_id = models.BigIntegerField(u'ID', help_text=u'Уникальный идентификатор', primary_key=True)
 
-
-class Poll(PollsAbstractModel):
     class Meta:
-        verbose_name = u'Опрос Вконтакте'
-        verbose_name_plural = u'Опросы Вконтакте'
+        abstract = True
+
+
+@python_2_unicode_compatible
+class Poll(PollsAbstractModel):
 
     remote_pk_field = 'poll_id'
+    _answers = []
 
     # Владелец головосвания User or Group
     owner_content_type = models.ForeignKey(ContentType, related_name='vkontakte_polls_polls')
@@ -79,13 +77,15 @@ class Poll(PollsAbstractModel):
         'get': 'getById',
     })
 
-    _answers = []
+    class Meta:
+        verbose_name = u'Опрос Вконтакте'
+        verbose_name_plural = u'Опросы Вконтакте'
 
     @property
     def slug(self):
         return '%s?w=poll-%s' % (self.owner.screen_name, self.post.remote_id)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.question
 
     def parse(self, response):
@@ -122,10 +122,8 @@ class Poll(PollsAbstractModel):
         return result
 
 
+@python_2_unicode_compatible
 class Answer(PollsAbstractModel):
-    class Meta:
-        verbose_name = u'Ответ опроса Вконтакте'
-        verbose_name_plural = u'Ответы опросов Вконтакте'
 
     poll = models.ForeignKey(Poll, verbose_name=u'Опрос', related_name='answers')
     text = models.TextField(u'Текст ответа')
@@ -137,7 +135,11 @@ class Answer(PollsAbstractModel):
     objects = AnswerManager()
     remote = AnswerRemoteManager()
 
-    def __unicode__(self):
+    class Meta:
+        verbose_name = u'Ответ опроса Вконтакте'
+        verbose_name_plural = u'Ответы опросов Вконтакте'
+
+    def __str__(self):
         return self.text
 
     def parse(self, response):
