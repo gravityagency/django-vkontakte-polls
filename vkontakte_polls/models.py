@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
+import logging
+
+from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from django.core.exceptions import ObjectDoesNotExist
+from vkontakte_api.api import api_call
 from vkontakte_api.models import VkontakteManager, VkontakteModel
 from vkontakte_api.parser import VkontakteParser
-from vkontakte_api.utils import api_call, ACCESS_TOKEN
-from vkontakte_users.models import User, USER_FIELDS
 from vkontakte_groups.models import Group
+from vkontakte_users.models import User, USER_FIELDS
 from vkontakte_wall.models import Post
-import logging
 
 log = logging.getLogger('vkontakte_polls')
 
@@ -68,7 +69,8 @@ class Poll(PollsAbstractModel):
 
     created = models.DateTimeField(u'Дата создания', db_index=True)
     question = models.TextField(u'Вопрос')
-    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Общее количество ответивших пользователей', db_index=True)
+    votes_count = models.PositiveIntegerField(
+        u'Голосов', help_text=u'Общее количество ответивших пользователей', db_index=True)
 
     answer_id = models.PositiveIntegerField(u'Ответ', help_text=u'идентификатор ответа текущего пользователя')
 
@@ -101,7 +103,8 @@ class Poll(PollsAbstractModel):
         try:
             self.owner_id = self.owner_content_type.get_object_for_this_type(remote_id=abs(owner_id)).pk
         except ObjectDoesNotExist:
-            raise ValueError("Impossible to parse poll with unexisted owner %s, remote_id=%s" % (self.owner_content_type.model, owner_id))
+            raise ValueError("Impossible to parse poll with unexisted owner %s, remote_id=%s" %
+                             (self.owner_content_type.model, owner_id))
 
         return super(Poll, self).parse(response)
 
@@ -127,7 +130,8 @@ class Answer(PollsAbstractModel):
 
     poll = models.ForeignKey(Poll, verbose_name=u'Опрос', related_name='answers')
     text = models.TextField(u'Текст ответа')
-    votes_count = models.PositiveIntegerField(u'Голосов', help_text=u'Количество пользователей, проголосовавших за ответ', db_index=True)
+    votes_count = models.PositiveIntegerField(
+        u'Голосов', help_text=u'Количество пользователей, проголосовавших за ответ', db_index=True)
     rate = models.FloatField(u'Рейтинг', help_text=u'Рейтинг ответа, в %')
 
     voters = models.ManyToManyField(User, verbose_name=u'Голосующие', blank=True, related_name='poll_answers')
@@ -170,7 +174,8 @@ class Answer(PollsAbstractModel):
         if offset != 0:
             post_data['offset'] = '%d,0,0,0,0,0,0,0,0' % offset
 
-        log.debug('Fetching votes of answer ID="%s" of poll %s of post %s of group "%s", offset %d' % (self.pk, self.poll.pk, self.poll.post, self.poll.owner, offset))
+        log.debug('Fetching votes of answer ID="%s" of poll %s of post %s of group "%s", offset %d' %
+                  (self.pk, self.poll.pk, self.poll.post, self.poll.owner, offset))
 
         parser = VkontakteParser().request('/al_wall.php', data=post_data)
 
@@ -193,9 +198,9 @@ class Answer(PollsAbstractModel):
         #</div>
 
         items = parser.add_users(users=('div', {'class': 'wk_poll_voter inl_bl'}),
-            user_link=('a', {'class': 'wk_poll_voter_lnk'}),
-            user_photo=('img', {'class': 'wk_poll_voter_img'}),
-            user_add=lambda user: self.voters.add(user))
+                                 user_link=('a', {'class': 'wk_poll_voter_lnk'}),
+                                 user_photo=('img', {'class': 'wk_poll_voter_img'}),
+                                 user_add=lambda user: self.voters.add(user))
 
         if len(items) == number_on_page:
             return self.fetch_voters(offset=offset + number_on_page)
@@ -219,7 +224,7 @@ class Answer(PollsAbstractModel):
             'fields': USER_FIELDS,
         }
 
-        result = api_call('polls.getVoters', used_access_tokens=ACCESS_TOKEN, **params)[0]
+        result = api_call('polls.getVoters', **params)[0]
 
         if offset == 0:
             try:
@@ -241,6 +246,3 @@ class Answer(PollsAbstractModel):
         if len(result['users'][1:]) == number_on_page:
             return self.fetch_voters_by_api(offset + number_on_page)
         return self.voters.all()
-
-
-import signals
