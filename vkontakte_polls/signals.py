@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+import logging
+import re
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from vkontakte_api.api import VkontakteError
 from vkontakte_wall.models import Post
-from vkontakte_api.utils import VkontakteError
-from models import Poll
-import re
-import logging
+
+from .models import Poll
 
 log = logging.getLogger('vkontakte_polls')
+
 
 @receiver(post_save, sender=Post)
 def fetch_poll_for_post(sender, instance, created, **kwargs):
@@ -18,7 +21,8 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
             # parser way
             #<input type="hidden" id="post_poll_id-45346748_4" value="72195917" />
             #<input type="hidden" id="post_poll_raw-16297716_190770" value="-16297716_83838453" /><input type="hidden" id="post_poll_open-16297716_190770" value="1" />
-            poll_id = re.findall(r'<input type="hidden" id="post_poll_(?:raw|id)(?:[^"]+)" value="([^"]+)" />', instance.raw_html)[0]
+            poll_id = re.findall(
+                r'<input type="hidden" id="post_poll_(?:raw|id)(?:[^"]+)" value="([^"]+)" />', instance.raw_html)[0]
 
             if '_' in poll_id:
                 poll_id = poll_id.split('_')[1]
