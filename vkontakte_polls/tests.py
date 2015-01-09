@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from models import Poll, Answer, Post
-from factories import PollFactory, AnswerFactory
-from vkontakte_groups.factories import GroupFactory
-from vkontakte_wall.factories import PostFactory
-from vkontakte_users.factories import UserFactory
-#from datetime import datetime
-import simplejson as json
 import mock
+import simplejson as json
+from vkontakte_groups.factories import GroupFactory
+from vkontakte_users.factories import UserFactory
+from vkontakte_wall.factories import PostFactory
+
+from .factories import PollFactory, AnswerFactory
+from .models import Poll, Answer, Post
 
 GROUP_ID = 16297716
 POST_ID = '-16297716_190770'
 POLL_ID = 83838453
+
 GROUP2_ID = 45346748
+GROUP2_POLLPOST_ID = '-45346748_4'
 
 
 class VkontaktePollsTest(TestCase):
@@ -36,7 +38,7 @@ class VkontaktePollsTest(TestCase):
              "votes": 2126}}'''
 
         group = GroupFactory.create(remote_id=GROUP_ID)
-        post = PostFactory.create(wall_owner=group)
+        post = PostFactory.create(owner=group)
         instance = Poll.remote.parse_response_dict(json.loads(response)['response'], {'post_id': post.id})
         instance.save()
 
@@ -62,7 +64,7 @@ class VkontaktePollsTest(TestCase):
     def test_fetching_poll(self):
 
         group = GroupFactory.create(remote_id=GROUP_ID)
-        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        post = PostFactory.create(remote_id=POST_ID, owner=group)
         instance = Poll.remote.fetch(POLL_ID, post)
 
         self.assertEqual(instance.pk, POLL_ID)
@@ -88,7 +90,7 @@ class VkontaktePollsTest(TestCase):
     def test_fetching_answer_users_by_parser(self, *args, **kwargs):
 
         group = GroupFactory.create(remote_id=GROUP_ID)
-        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        post = PostFactory.create(remote_id=POST_ID, owner=group)
         poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
         answer = AnswerFactory.create(pk=266067661, poll=poll)
 
@@ -116,7 +118,12 @@ class VkontaktePollsTest(TestCase):
         self.assertEqual(Post.objects.count(), 0)
         self.assertEqual(Poll.objects.count(), 0)
         self.assertEqual(Answer.objects.count(), 0)
-        group.fetch_posts(own=True)
+
+        posts = group.fetch_posts(own=True)
+
+        self.assertGreaterEqual(posts.count(), 14)
+        self.assertTrue(GROUP2_POLLPOST_ID in [post.remote_id for post in posts])
+
         self.assertTrue(Post.objects.count() > 0)
         self.assertTrue(Poll.objects.count() > 0)
         self.assertTrue(Answer.objects.count() > 0)
@@ -130,7 +137,7 @@ class VkontaktePollsTest(TestCase):
             return 0
 
         group = GroupFactory.create(remote_id=GROUP_ID)
-        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        post = PostFactory.create(remote_id=POST_ID, owner=group)
         poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
         answer = AnswerFactory.create(pk=266067661, poll=poll)
 
@@ -146,7 +153,7 @@ class VkontaktePollsTest(TestCase):
     def test_fetching_answer_users(self, *args, **kwargs):
 
         group = GroupFactory.create(remote_id=GROUP_ID)
-        post = PostFactory.create(remote_id=POST_ID, wall_owner=group)
+        post = PostFactory.create(remote_id=POST_ID, owner=group)
         poll = PollFactory.create(remote_id=POLL_ID, owner=group, post=post)
         answer = AnswerFactory.create(pk=266067661, poll=poll)
 

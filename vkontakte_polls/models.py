@@ -31,7 +31,7 @@ class PollsRemoteManager(VkontakteManager):
 class PollRemoteManager(PollsRemoteManager):
 
     def fetch(self, poll_id, post, **kwargs):
-        owner = post.copy_owner or post.wall_owner
+        owner = post.copy_owner or post.owner
 
         kwargs['extra_fields'] = {'post_id': post.id}
         kwargs['poll_id'] = poll_id

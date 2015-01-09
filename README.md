@@ -52,7 +52,7 @@ Django Vkontakte Polls
 
     >>> from vkontakte_polls.models import Poll, Group, Post
     >>> group = Group.remote.fetch(ids=[16297716])[0]
-    >>> post = Post.objects.create(remote_id='-16297716_190770', wall_owner=group)
+    >>> post = Post.objects.create(remote_id='-16297716_190770', owner=group)
     >>> poll = Poll.remote.fetch(83838453, group, post)
     >>> poll.pk
     83838453
