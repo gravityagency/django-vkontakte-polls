@@ -15,7 +15,6 @@ log = logging.getLogger('vkontakte_polls')
 @receiver(post_save, sender=Post)
 def fetch_poll_for_post(sender, instance, created, **kwargs):
     try:
-
         poll_id = None
         if instance.raw_html:
             # parser way
@@ -29,9 +28,17 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
 
         elif instance.raw_json:
             # api way
-            for attachment in instance.raw_json.get('attachments', []):
+            attachments = []
+            if 'copy_history' in instance.raw_json and len(instance.raw_json['copy_history']) >= 1:
+                attachments = instance.raw_json['copy_history'][0].get('attachments', [])
+            else:
+                attachments = instance.raw_json.get('attachments', [])
+
+            for attachment in attachments:
                 if attachment['type'] == 'poll':
-                    poll_id = attachment['poll']['poll_id']
+                    poll_id = attachment['poll']['id']
+                    # TODO: parse here from resource without extra fetching
+#                    Poll.remote.get_or_create_from_resource(attachment['poll'])
 
         assert poll_id
         Poll.remote.fetch(int(poll_id), instance)

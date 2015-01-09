@@ -17,7 +17,7 @@ setup(
         'django-vkontakte-api>=0.7.0',
         'django-vkontakte-users>=0.3.2',
         'django-vkontakte-groups>=0.3.0',
-        'django-vkontakte-wall>=0.3.10',
+        'django-vkontakte-wall>=0.7.2',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
