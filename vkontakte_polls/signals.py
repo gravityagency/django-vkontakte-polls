@@ -35,7 +35,7 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
                 attachments = instance.raw_json.get('attachments', [])
 
             for attachment in attachments:
-                if attachment['type'] == 'poll':
+                if attachment['type'] == 'poll' and abs(attachment['poll']['owner_id']) == instance.owner.remote_id:
                     poll_id = attachment['poll']['id']
                     # TODO: parse here from resource without extra fetching
 #                    Poll.remote.get_or_create_from_resource(attachment['poll'])
