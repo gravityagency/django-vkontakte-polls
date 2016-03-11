@@ -19,16 +19,9 @@ from . import signals
 log = logging.getLogger('vkontakte_polls')
 
 
-class AnswerManager(models.Manager):
-    pass
-
-
-class PollManager(models.Manager):
-    pass
-
-
 class PollsRemoteManager(VkontakteManager):
-    pass
+    methods_namespace = 'polls'
+    version = 5.5
 
 
 class PollRemoteManager(PollsRemoteManager):
@@ -87,7 +80,6 @@ class AnswerRemoteManager(PollsRemoteManager, ParseUsersMixin):
 
 class PollsAbstractModel(VkontakteModel):
 
-    methods_namespace = 'polls'
     remote_id = models.BigIntegerField(u'ID', help_text=u'Уникальный идентификатор', primary_key=True)
 
     class Meta:
@@ -113,8 +105,8 @@ class Poll(PollsAbstractModel):
 
     answer_id = models.PositiveIntegerField(u'Ответ', help_text=u'идентификатор ответа текущего пользователя')
 
-    objects = PollManager()
-    remote = PollRemoteManager(remote_pk=('remote_id',), version=5.8, methods={
+    objects = models.Manager()
+    remote = PollRemoteManager(remote_pk=('remote_id',), methods={
         'get': 'getById',
     })
 
@@ -175,8 +167,8 @@ class Answer(PollsAbstractModel):
 
     voters = models.ManyToManyField(User, verbose_name=u'Голосующие', blank=True, related_name='poll_answers')
 
-    objects = AnswerManager()
-    remote = AnswerRemoteManager(methods_namespace='polls', version=5.8, methods={
+    objects = models.Manager()
+    remote = AnswerRemoteManager(methods={
         'voters': 'getVoters',
     })
 

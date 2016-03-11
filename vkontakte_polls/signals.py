@@ -24,6 +24,8 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
 
             if '_' in poll_id:
                 poll_id = poll_id.split('_')[1]
+                if poll_id:
+                    Poll.remote.fetch(poll_id, instance)
 
         elif instance.raw_json:
             # api way
@@ -33,13 +35,9 @@ def fetch_poll_for_post(sender, instance, created, **kwargs):
                 attachments = instance.raw_json.get('attachments', [])
 
             for attachment in attachments:
-                if attachment['type'] == 'poll':# and abs(attachment['poll']['owner_id']) == instance.owner.remote_id:
-                    poll_id = int(attachment['poll']['id'])
-                    # TODO: parse here from resource without extra fetching
-#                    Poll.remote.get_or_create_from_resource(attachment['poll'])
-
-        assert poll_id
-        Poll.remote.fetch(poll_id, instance)
+                if attachment['type'] == 'poll':
+                    poll = Poll.remote.parse_response_dict(attachment['poll'], {'post_id': instance.pk})
+                    Poll.remote.get_or_create_from_instance(poll)
 
     except VkontakteError, e:
         log.error("Vkontakte error (code = %s) raised: '%s'" % (e.code, e.description))
