@@ -129,13 +129,8 @@ class Poll(PollsAbstractModel):
 
         # owner
         owner_id = int(response.pop('owner_id'))
-        ct_model = User if owner_id > 0 else Group
-        self.owner_content_type = ContentType.objects.get_for_model(ct_model)
-        try:
-            self.owner_id = self.owner_content_type.get_object_for_this_type(remote_id=abs(owner_id)).pk
-        except ObjectDoesNotExist:
-            raise ValueError("Impossible to parse poll with unexisted owner %s, remote_id=%s" %
-                             (self.owner_content_type.model, owner_id))
+        self.owner_content_type = ContentType.objects.get_for_model(User if owner_id > 0 else Group)
+        self.owner_id = abs(owner_id)
 
         return super(Poll, self).parse(response)
 
